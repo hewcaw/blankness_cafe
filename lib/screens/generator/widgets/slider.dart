@@ -21,6 +21,59 @@ class MynoiseSlider extends StatefulWidget {
   final Color inactiveColor;
   final SliderController controller;
 
+  static List<List<Color>> get sliderColors => [
+        [
+          Colors.deepOrange,
+          Colors.deepOrange.shade300,
+          Colors.deepOrange.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.red,
+          Colors.red.shade300,
+          Colors.red.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.yellow,
+          Colors.yellow.shade300,
+          Colors.yellow.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.lime,
+          Colors.lime.shade300,
+          Colors.lime.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.green,
+          Colors.green.shade300,
+          Colors.green.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.teal,
+          Colors.teal.shade300,
+          Colors.teal.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.cyan,
+          Colors.cyan.shade300,
+          Colors.cyan.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.blue,
+          Colors.blue.shade300,
+          Colors.blue.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.deepPurple,
+          Colors.deepPurple.shade300,
+          Colors.deepPurple.shade300.withOpacity(0.7),
+        ],
+        [
+          Colors.purple.shade400,
+          Colors.purple.shade300,
+          Colors.purple.shade300.withOpacity(0.7),
+        ],
+      ];
+
   @override
   _MynoiseSlider createState() => _MynoiseSlider();
 }
@@ -41,8 +94,8 @@ class _MynoiseSlider extends State<MynoiseSlider> {
   }
 
   Future<void> _initAudio() async {
-    final String source = "assets/audios/calm_office/";
-    await _audioPlayer.setAsset(source + widget.audioAsset);
+    // final String source = "assets/audios/calm_office/";
+    await _audioPlayer.setAsset(widget.audioAsset);
     await _audioPlayer.setLoopMode(LoopMode.one);
     await _audioPlayer.setVolume(this._value / 100);
 

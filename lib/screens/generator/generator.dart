@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter_xlider/flutter_xlider.dart';
 
-import '../data.dart';
-import '../widgets/buttons.dart' show MyBackButton;
+import '../../domain/models/models.dart' show GeneratorAudio;
+import '../../widgets/buttons.dart' show MyBackButton;
 
-import 'countdown.dart';
-import 'slider.dart';
-import 'timer_button.dart';
+import './widgets/countdown.dart';
+import './widgets/slider.dart';
+import './widgets/timer_button.dart';
 
 // TODO: Refactor - Audio to Generator.
 class Generator extends StatefulWidget {
+  const Generator({Key? key, required this.audios}) : super(key: key);
+
+  final List<GeneratorAudio> audios;
+
   @override
   _GeneratorState createState() => _GeneratorState();
 }
@@ -96,12 +100,12 @@ class _GeneratorState extends State<Generator> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                GeneratorData.audios.length,
+                widget.audios.length,
                 (i) => MynoiseSlider(
-                  audioAsset: GeneratorData.audios[i].sound1,
-                  thumbColor: GeneratorData().sliderColors[i][0],
-                  activeColor: GeneratorData().sliderColors[i][1],
-                  inactiveColor: GeneratorData().sliderColors[i][2],
+                  audioAsset: widget.audios[i].sound1,
+                  thumbColor: MynoiseSlider.sliderColors[i][0],
+                  activeColor: MynoiseSlider.sliderColors[i][1],
+                  inactiveColor: MynoiseSlider.sliderColors[i][2],
                   controller: _controllersManager.controllers[i],
                 ),
               ),

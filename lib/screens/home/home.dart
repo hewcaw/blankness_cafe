@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 
-import '../data.dart';
+import '../../domain/models/models.dart' show GeneratorPack, GeneratorInfo;
+import '../../domain/repositories.dart';
 import '../generator/generator.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
+  @override
+  _HomeState createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  late Future<List<GeneratorPack>> futureGeneratorPack;
+
+  @override
+  void initState() {
+    super.initState();
+    futureGeneratorPack = GeneratorRepository.fetchGeneratorPack();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,12 +32,27 @@ class Home extends StatelessWidget {
         ),
         actions: <Widget>[AppBarAvatar()],
       ),
-      body: ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 26),
-        itemCount: HomeMockData.cardItems.length,
-        itemBuilder: (context, index) {
-          final item = HomeMockData.cardItems[index];
-          return SuggestionBlock(item: item);
+      body: FutureBuilder(
+        future: futureGeneratorPack,
+        builder: (context, AsyncSnapshot<List<GeneratorPack>> snapshot) {
+          if (snapshot.hasData) {
+            // return Text(snapshot.data!.title);
+            return ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 26),
+              // itemCount: HomeMockData.cardItems.length,
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                // final item = HomeMockData.cardItems[index];
+                final item = snapshot.data![index];
+                return SuggestionBlock(genPack: item);
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Text("${snapshot.error}");
+          }
+
+          // By default, show a loading spinner.
+          return CircularProgressIndicator();
         },
       ),
     );
@@ -60,9 +89,9 @@ class AppBarAvatar extends StatelessWidget {
 }
 
 class SuggestionBlock extends StatelessWidget {
-  SuggestionBlock({required this.item});
+  SuggestionBlock({required this.genPack});
 
-  final CardItemModel item;
+  final GeneratorPack genPack;
 
   @override
   Widget build(BuildContext context) {
@@ -71,21 +100,17 @@ class SuggestionBlock extends StatelessWidget {
       // TODO: Responsive - remove all of the SizedBoxes below
       children: [
         Text(
-          item.guide,
+          genPack.suggestion,
           textAlign: TextAlign.start,
           style: Theme.of(context).textTheme.bodyText2!.copyWith(
                 fontWeight: FontWeight.bold,
               ),
         ),
         SizedBox(height: 16),
-        ...item.items.map<Widget>(
+        ...genPack.generators.map<Widget>(
           (value) => Column(
             children: [
-              GeneratorListTile(
-                thumbnail: value.img,
-                title: value.title,
-                subtitle: value.subtitle,
-              ),
+              GeneratorListTile(genInfo: value),
               SizedBox(height: 16),
             ],
           ),
@@ -98,14 +123,10 @@ class SuggestionBlock extends StatelessWidget {
 
 class GeneratorListTile extends StatelessWidget {
   const GeneratorListTile({
-    required this.thumbnail,
-    required this.title,
-    required this.subtitle,
+    required this.genInfo,
   });
 
-  final String thumbnail;
-  final String title;
-  final String subtitle;
+  final GeneratorInfo genInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +137,10 @@ class GeneratorListTile extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Generator()),
+          MaterialPageRoute(
+              builder: (context) => Generator(
+                    audios: genInfo.audios,
+                  )),
         );
       },
       child: SizedBox(
@@ -126,7 +150,7 @@ class GeneratorListTile extends StatelessWidget {
           children: <Widget>[
             ClipRRect(
               borderRadius: BorderRadius.circular(15.0),
-              child: Image.asset(thumbnail, height: 64.0, width: 64.0),
+              child: Image.asset(genInfo.thumbnail, height: 64.0, width: 64.0),
             ),
             SizedBox(width: 16),
             Expanded(
@@ -135,13 +159,13 @@ class GeneratorListTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    this.title,
+                    genInfo.name,
                     style: Theme.of(context).textTheme.caption!.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   Text(
-                    this.subtitle,
+                    genInfo.description,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.caption!.copyWith(
                           color: Colors.grey,
