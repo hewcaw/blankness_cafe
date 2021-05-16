@@ -6,10 +6,8 @@ import '../generator/generator.dart';
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // return Center(child: GeneratorListTile());
     return Scaffold(
       appBar: AppBar(
-        // leading: MyBackButton(),
         // toolbarHeight: ,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
@@ -70,7 +68,7 @@ class SuggestionBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      // TODO: Reduce all of the SizedBoxes below.
+      // TODO: Responsive - remove all of the SizedBoxes below
       children: [
         Text(
           item.guide,
@@ -111,12 +109,8 @@ class GeneratorListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Responsive.
+    // TODO: Responsive
     // TODO: Can I use ListTile?
-    // 1. Regular Row + Column
-    // 2. ListTile after fingering out leading, title, subtitle
-    // 3. Back to 1 because cannot set height for ListTile
-    // 4. ???
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -161,51 +155,4 @@ class GeneratorListTile extends StatelessWidget {
       ),
     );
   }
-
-  // return ListTile(
-  //   contentPadding: EdgeInsets.only(left: 0, right: 16),
-  //   horizontalTitleGap: 32,
-  //   // minLeadingWidth: 50,
-  //   leading: Container(
-  //     height: 128,
-  //     width: 128,
-  //     decoration: BoxDecoration(
-  //         color: Colors.grey,
-  //         borderRadius: BorderRadius.all(Radius.circular(15))),
-  //     // child: Image(image: AssetImage(img), ),
-  //   ),
-  //   // leading: Container(
-  //   //   height: 64,
-  //   //   width: 64,
-  //   //   child: ClipRRect(
-  //   //     borderRadius: BorderRadius.circular(15.0),
-  //   //     child: Image.asset(
-  //   //       img,
-  //   //       height: 64.0,
-  //   //       width: 64.0,
-  //   //     ),
-  //   //   ),
-  //   // ),
-  //   // Titles & Description:
-  //   title: Padding(
-  //     padding: EdgeInsets.only(bottom: 8),
-  //     child: Text(
-  //       this.title,
-  //       style: Theme.of(context)
-  //           .textTheme
-  //           .caption!
-  //           .copyWith(fontWeight: FontWeight.bold),
-  //     ),
-  //   ),
-  //   subtitle: Padding(
-  //     padding: EdgeInsets.only(bottom: 4),
-  //     child: Text(
-  //       this.subtitle,
-  //       overflow: TextOverflow.ellipsis,
-  //       style: TextStyle(
-  //           fontSize: Theme.of(context).textTheme.caption!.fontSize,
-  //           color: Colors.grey),
-  //     ),
-  //   ),
-  // );
 }

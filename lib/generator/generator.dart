@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-
-import 'package:blankness_cafe/widgets/buttons.dart' show MyBackButton;
 // import 'package:flutter_xlider/flutter_xlider.dart';
-import 'package:just_audio/just_audio.dart';
 
 import '../data.dart';
+import '../widgets/buttons.dart' show MyBackButton;
+
+import 'countdown.dart';
+import 'slider.dart';
+import 'timer_button.dart';
 
 // TODO: Refactor - Audio to Generator.
 class Generator extends StatefulWidget {
@@ -13,7 +15,26 @@ class Generator extends StatefulWidget {
 }
 
 class _GeneratorState extends State<Generator> {
-  bool isPaused = false;
+  bool _isPaused = false;
+  Duration duration = Duration(hours: 2);
+  // late SliderController _controller;
+  late ControllersManager _controllersManager;
+  // final GlobalKey<_MynoiseSlider> _state = GlobalKey<_MynoiseSlider>();
+
+  @override
+  void initState() {
+    super.initState();
+    _controllersManager = ControllersManager();
+    _controllersManager.init();
+    // _controller = SliderController();
+  }
+
+  @override
+  void dispose() {
+    // _controller.dispose();
+    _controllersManager.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +54,41 @@ class _GeneratorState extends State<Generator> {
               children: [
                 GeneratorSwitchButton(),
                 GeneratorAddButton(),
-                PauseButton(
-                  onPressed: () => setState(() => this.isPaused = !this.isPaused),
+                PauseButton(onPressed: () {
+                  setState(() => this._isPaused = !this._isPaused);
+                  if (_isPaused)
+                    _controllersManager.controllers.forEach((controller) {
+                      controller.pause!();
+                    });
+                  else
+                    _controllersManager.controllers.forEach((controller) {
+                      controller.play!();
+                    });
+                }),
+                VolumeDown(onPressed: () {
+                  _controllersManager.controllers.forEach((controller) {
+                    controller.volumeDown!();
+                  });
+                }),
+                VolumeUp(onPressed: () {
+                  _controllersManager.controllers.forEach((controller) {
+                    controller.volumeUp!();
+                  });
+                }),
+                // FIXME: Why the below cause null error?
+                // ResetButton(onPressed: _controller.reset!),
+                ResetButton(onPressed: () {
+                  _controllersManager.controllers.forEach((controller) {
+                    controller.reset!();
+                  });
+                }),
+                TimerButton(
+                  onTimeChange: (DateTime time) {
+                    setState(() {
+                      this.duration = Duration(hours: time.hour, minutes: time.minute);
+                      print("Duration >>> " + this.duration.toString());
+                    });
+                  },
                 ),
               ],
             ),
@@ -48,9 +102,15 @@ class _GeneratorState extends State<Generator> {
                   thumbColor: GeneratorData().sliderColors[i][0],
                   activeColor: GeneratorData().sliderColors[i][1],
                   inactiveColor: GeneratorData().sliderColors[i][2],
-                  isPaused: this.isPaused,
+                  controller: _controllersManager.controllers[i],
                 ),
               ),
+            ),
+            CountdownFormatted(
+              duration: this.duration,
+              builder: (BuildContext ctx, String remaining) {
+                return Text(remaining); // 01:00:00
+              },
             ),
           ],
         ),
@@ -84,21 +144,24 @@ class GeneratorSwitchButton extends StatelessWidget {
   }
 }
 
-class PauseButton extends StatelessWidget {
-  PauseButton({required this.onPressed});
+class ControllersManager {
+  // late SliderController controller1;
+  // late List<SliderController> controllers = [controller1];
 
-  final VoidCallback onPressed;
+  List<SliderController> controllers = List<SliderController>.generate(10, (index) {
+    return SliderController();
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 32,
-      width: 32,
-      child: IconButton(
-        icon: Icon(Icons.play_arrow, color: Colors.white),
-        onPressed: onPressed,
-      ),
-    );
+  void init() {
+    controllers.forEach((controller) {
+      controller = SliderController();
+    });
+  }
+
+  void dispose() {
+    controllers.forEach((controller) {
+      controller.dispose();
+    });
   }
 }
 
@@ -122,123 +185,89 @@ class GeneratorAddButton extends StatelessWidget {
   }
 }
 
-// TODO: Turn this into Stateless via GetX.
-class MynoiseSlider extends StatefulWidget {
-  MynoiseSlider({
-    required this.audioAsset,
-    required this.thumbColor,
-    required this.activeColor,
-    required this.inactiveColor,
-    this.isPaused = false,
-  });
+class MynoiseButton extends StatelessWidget {
+  const MynoiseButton({
+    Key? key,
+    required this.child,
+  }) : super(key: key);
 
-  final String audioAsset;
-  final Color thumbColor;
-  final Color activeColor;
-  final Color inactiveColor;
-  final bool isPaused;
-
-  @override
-  _MynoiseSlider createState() => _MynoiseSlider();
-}
-
-class _MynoiseSlider extends State<MynoiseSlider> {
-  late AudioPlayer _audioPlayer;
-
-  double value = 35; // default value
-
-  @override
-  void initState() {
-    super.initState();
-    _audioPlayer = AudioPlayer();
-    _init();
-  }
-
-  Future<void> _init() async {
-    await _audioPlayer.setAsset("assets/audios/calm_office/" + widget.audioAsset);
-    await _audioPlayer.setLoopMode(LoopMode.one);
-    await _audioPlayer.setVolume(this.value / 100);
-
-    _audioPlayer.play();
-  }
-
-  @override
-  void didUpdateWidget(MynoiseSlider oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isPaused != oldWidget.isPaused) {
-      if (widget.isPaused == true) {
-        _audioPlayer.pause();
-      } else {
-        _audioPlayer.play();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    // _audioPlayer.pause();
-    _audioPlayer.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onVolumeChanged(double value) async {
-    setState(() => this.value = value);
-    await _audioPlayer.setVolume(this.value / 100);
-  }
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return SliderTheme(
-      data: SliderThemeData(
-        trackHeight: 12,
-
-        thumbColor: widget.thumbColor,
-        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 9),
-
-        activeTrackColor: widget.activeColor,
-        inactiveTrackColor: widget.inactiveColor,
-
-        /// Disable ticks in between.
-        activeTickMarkColor: Colors.transparent,
-        inactiveTickMarkColor: Colors.transparent,
+    return Container(
+      height: 32,
+      width: 32,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade700,
+        border: Border.all(width: 2, color: Colors.grey.shade300),
+        shape: BoxShape.circle,
       ),
-      child: SizedBox(
-        height: 180,
-        width: 30,
-        child: RotatedBox(
-          quarterTurns: 3,
-          child: Slider(
-            value: value,
-            max: 100,
-            min: 0,
-            divisions: 20,
-            // label: value.round().toString(),
-            onChanged: _onVolumeChanged,
-          ),
-        ),
+      child: child,
+    );
+  }
+}
+
+class PauseButton extends StatelessWidget {
+  PauseButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return MynoiseButton(
+      child: IconButton(
+        icon: Icon(Icons.play_arrow, color: Colors.white, size: 14),
+        onPressed: onPressed,
       ),
     );
+  }
+}
 
-    // return SizedBox(
-    //   height: 180,
-    //   width: 80,
-    //   child: FlutterSlider(
-    //     trackBar: FlutterSliderTrackBar(
-    //       activeTrackBar: BoxDecoration(
-    //           gradient: LinearGradient(colors: [Colors.black, Colors.white]),
-    //           borderRadius: BorderRadius.circular(5)),
-    //       activeTrackBarHeight: 6,
-    //     ),
-    //     axis: Axis.vertical,
-    //     handler: FlutterSliderHandler(disabled: true),
-    //     values: [this.value],
-    //     min: 0,
-    //     max: 100,
-    //     onDragging: (handlerIndex, lowerValue, upperValue) async {
-    //       setState(() => this.value = lowerValue);
-    //       await _audioPlayer.setVolume(this.value / 100);
-    //     },
-    //   ),
-    // );
+class VolumeDown extends StatelessWidget {
+  VolumeDown({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return MynoiseButton(
+      child: IconButton(
+        icon: Icon(Icons.volume_down_outlined, color: Colors.white, size: 14),
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+class VolumeUp extends StatelessWidget {
+  VolumeUp({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return MynoiseButton(
+      child: IconButton(
+        icon: Icon(Icons.volume_up_outlined, color: Colors.white, size: 14),
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+class ResetButton extends StatelessWidget {
+  ResetButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return MynoiseButton(
+      child: IconButton(
+        icon: Icon(Icons.arrow_circle_down_outlined, color: Colors.white, size: 14),
+        onPressed: onPressed,
+      ),
+    );
   }
 }
