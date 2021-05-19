@@ -57,7 +57,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-    - assets/images/generators/calm_office.jpg
+    - assets/images/generators/cafe_restaurant.jpg
     - assets/images/others/girl_toy_face.jpg
     
     - assets/audios/calm_office/

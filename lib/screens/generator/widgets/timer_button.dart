@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'time_picker_spinner.dart';
+import './auxiliary_buttons.dart' show MynoiseButton;
+import './time_picker_spinner.dart';
 
 class TimerButton extends StatelessWidget {
   const TimerButton({Key? key, required this.onTimeChange}) : super(key: key);
@@ -25,32 +26,9 @@ class TimerButton extends StatelessWidget {
 
     return MynoiseButton(
       child: IconButton(
-        icon: Icon(Icons.play_arrow, color: Colors.white, size: 14),
+        icon: Icon(Icons.timer, color: Colors.white, size: 14),
         onPressed: _showDialog,
       ),
-    );
-  }
-}
-
-class MynoiseButton extends StatelessWidget {
-  const MynoiseButton({
-    Key? key,
-    required this.child,
-  }) : super(key: key);
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      width: 32,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade700,
-        border: Border.all(width: 2, color: Colors.grey.shade300),
-        shape: BoxShape.circle,
-      ),
-      child: child,
     );
   }
 }

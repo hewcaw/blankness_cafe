@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../domain/models/models.dart' show GeneratorAudio;
 import '../../widgets/buttons.dart' show MyBackButton;
 
+import './widgets/auxiliary_buttons.dart';
 import './widgets/countdown.dart';
 import './widgets/slider.dart';
 import './widgets/timer_button.dart';
@@ -19,7 +20,7 @@ class Generator extends StatefulWidget {
 }
 
 class _GeneratorState extends State<Generator> {
-  bool _isPaused = false;
+  bool _isPlaying = true;
   Duration duration = Duration(hours: 2);
   // late SliderController _controller;
   late ControllersManager _controllersManager;
@@ -54,48 +55,6 @@ class _GeneratorState extends State<Generator> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                GeneratorSwitchButton(),
-                GeneratorAddButton(),
-                PauseButton(onPressed: () {
-                  setState(() => this._isPaused = !this._isPaused);
-                  if (_isPaused)
-                    _controllersManager.controllers.forEach((controller) {
-                      controller.pause!();
-                    });
-                  else
-                    _controllersManager.controllers.forEach((controller) {
-                      controller.play!();
-                    });
-                }),
-                VolumeDown(onPressed: () {
-                  _controllersManager.controllers.forEach((controller) {
-                    controller.volumeDown!();
-                  });
-                }),
-                VolumeUp(onPressed: () {
-                  _controllersManager.controllers.forEach((controller) {
-                    controller.volumeUp!();
-                  });
-                }),
-                // FIXME: Why the below cause null error?
-                // ResetButton(onPressed: _controller.reset!),
-                ResetButton(onPressed: () {
-                  _controllersManager.controllers.forEach((controller) {
-                    controller.reset!();
-                  });
-                }),
-                TimerButton(
-                  onTimeChange: (DateTime time) {
-                    setState(() {
-                      this.duration = Duration(hours: time.hour, minutes: time.minute);
-                      print("Duration >>> " + this.duration.toString());
-                    });
-                  },
-                ),
-              ],
-            ),
             SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -110,41 +69,68 @@ class _GeneratorState extends State<Generator> {
                 ),
               ),
             ),
-            CountdownFormatted(
-              duration: this.duration,
-              builder: (BuildContext ctx, String remaining) {
-                return Text(remaining); // 01:00:00
-              },
+            Center(
+              child: CountdownFormatted(
+                duration: this.duration,
+                builder: (BuildContext ctx, String remaining) {
+                  return Text(remaining); // 01:00:00
+                },
+              ),
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // GeneratorSwitchButton(),
+                // GeneratorAddButton(),
+                PlayPauseButton(
+                    isPlaying: _isPlaying,
+                    onPressed: () {
+                      setState(() => this._isPlaying = !this._isPlaying);
+                      if (_isPlaying)
+                        _controllersManager.controllers.forEach((controller) {
+                          controller.pause!();
+                        });
+                      else
+                        _controllersManager.controllers.forEach((controller) {
+                          controller.play!();
+                        });
+                    }),
+                SizedBox(width: 16),
+                VolumeDown(onPressed: () {
+                  _controllersManager.controllers.forEach((controller) {
+                    controller.volumeDown!();
+                  });
+                }),
+                SizedBox(width: 16),
+                VolumeUp(onPressed: () {
+                  _controllersManager.controllers.forEach((controller) {
+                    controller.volumeUp!();
+                  });
+                }),
+                SizedBox(width: 16),
+                // FIXME: Why the below cause null error?
+                // ResetButton(onPressed: _controller.reset!),
+                ResetButton(onPressed: () {
+                  _controllersManager.controllers.forEach((controller) {
+                    controller.reset!();
+                  });
+                }),
+                SizedBox(width: 16),
+                TimerButton(
+                  onTimeChange: (DateTime time) {
+                    setState(() {
+                      this.duration = Duration(hours: time.hour, minutes: time.minute);
+                      print("Duration >>> " + this.duration.toString());
+                    });
+                  },
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-// TODO: Use 3D icon instead of Image Button.
-class GeneratorSwitchButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: Image.asset(
-          'assets/images/generators/calm_office.jpg',
-          height: 32.0,
-          width: 32.0,
-        ),
-      ),
-      onPressed: () {},
-    );
-    // return Container(
-    //   height: 40,
-    //   width: 40,
-    //   decoration: BoxDecoration(
-    //     color: Colors.grey, shape: BoxShape.circle,
-    //   ),
-    // );
   }
 }
 
@@ -166,112 +152,5 @@ class ControllersManager {
     controllers.forEach((controller) {
       controller.dispose();
     });
-  }
-}
-
-// TODO: Stop this ugly.
-class GeneratorAddButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      width: 32,
-      decoration: BoxDecoration(
-        border: Border.all(width: 1, color: Colors.black),
-        color: Colors.grey,
-        shape: BoxShape.circle,
-      ),
-      child: IconButton(
-        icon: Icon(Icons.add, size: 14),
-        onPressed: () {},
-      ),
-    );
-  }
-}
-
-class MynoiseButton extends StatelessWidget {
-  const MynoiseButton({
-    Key? key,
-    required this.child,
-  }) : super(key: key);
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      width: 32,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade700,
-        border: Border.all(width: 2, color: Colors.grey.shade300),
-        shape: BoxShape.circle,
-      ),
-      child: child,
-    );
-  }
-}
-
-class PauseButton extends StatelessWidget {
-  PauseButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return MynoiseButton(
-      child: IconButton(
-        icon: Icon(Icons.play_arrow, color: Colors.white, size: 14),
-        onPressed: onPressed,
-      ),
-    );
-  }
-}
-
-class VolumeDown extends StatelessWidget {
-  VolumeDown({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return MynoiseButton(
-      child: IconButton(
-        icon: Icon(Icons.volume_down_outlined, color: Colors.white, size: 14),
-        onPressed: onPressed,
-      ),
-    );
-  }
-}
-
-class VolumeUp extends StatelessWidget {
-  VolumeUp({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return MynoiseButton(
-      child: IconButton(
-        icon: Icon(Icons.volume_up_outlined, color: Colors.white, size: 14),
-        onPressed: onPressed,
-      ),
-    );
-  }
-}
-
-class ResetButton extends StatelessWidget {
-  ResetButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return MynoiseButton(
-      child: IconButton(
-        icon: Icon(Icons.arrow_circle_down_outlined, color: Colors.white, size: 14),
-        onPressed: onPressed,
-      ),
-    );
   }
 }
