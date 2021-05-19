@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/models/models.dart' show GeneratorPack, GeneratorInfo;
 import '../../domain/repositories.dart';
@@ -134,13 +135,14 @@ class GeneratorListTile extends StatelessWidget {
     // TODO: Can I use ListTile?
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: () {
+      onTap: () async {
+        final repo = GeneratorRepository(await SharedPreferences.getInstance());
+        repo.moveToGenerator(genInfo.name);
+
         Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => Generator(
-                    audios: genInfo.audios,
-                  )),
+          // MaterialPageRoute(builder: (context) => Generator(audios: genInfo.audios)),
+          MaterialPageRoute(builder: (context) => Generator()),
         );
       },
       child: SizedBox(

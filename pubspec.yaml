@@ -23,6 +23,7 @@ environment:
 dependencies:
   just_audio: ^0.7.4+1
   http: ^0.13.3
+  shared_preferences: ^2.0.5
 
   freezed_annotation: ^0.14.1
 

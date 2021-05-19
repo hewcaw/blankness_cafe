@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter_xlider/flutter_xlider.dart';
 
-import '../../domain/models/models.dart' show GeneratorAudio;
+import '../../domain/models/models.dart' show GeneratorAudio, GeneratorPack, GeneratorInfo;
+import '../../domain/repositories.dart';
 import '../../widgets/buttons.dart' show MyBackButton;
 
 import './widgets/auxiliary_buttons.dart';
@@ -11,9 +12,9 @@ import './widgets/timer_button.dart';
 
 // TODO: Refactor - Audio to Generator.
 class Generator extends StatefulWidget {
-  const Generator({Key? key, required this.audios}) : super(key: key);
+  // const Generator({Key? key, required this.audios}) : super(key: key);
 
-  final List<GeneratorAudio> audios;
+  // final List<GeneratorAudio> audios;
 
   @override
   _GeneratorState createState() => _GeneratorState();
@@ -24,11 +25,13 @@ class _GeneratorState extends State<Generator> {
   Duration duration = Duration(hours: 2);
   // late SliderController _controller;
   late ControllersManager _controllersManager;
+  late Future<List<GeneratorPack>> futureGeneratorPack;
   // final GlobalKey<_MynoiseSlider> _state = GlobalKey<_MynoiseSlider>();
 
   @override
   void initState() {
     super.initState();
+    futureGeneratorPack = GeneratorRepository.fetchGeneratorPack();
     _controllersManager = ControllersManager();
     _controllersManager.init();
     // _controller = SliderController();
@@ -51,22 +54,51 @@ class _GeneratorState extends State<Generator> {
         brightness: Brightness.dark,
       ),
       body: Container(
-        padding: EdgeInsets.only(top: 16, left: 16),
+        padding: EdgeInsets.only(top: 16, left: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                widget.audios.length,
-                (i) => MynoiseSlider(
-                  audioAsset: widget.audios[i].sound1,
-                  thumbColor: MynoiseSlider.sliderColors[i][0],
-                  activeColor: MynoiseSlider.sliderColors[i][1],
-                  inactiveColor: MynoiseSlider.sliderColors[i][2],
-                  controller: _controllersManager.controllers[i],
-                ),
+            Container(
+              height: 200,
+              child: FutureBuilder(
+                future: futureGeneratorPack,
+                builder: (context, AsyncSnapshot<List<GeneratorPack>> snapshot) {
+                  if (snapshot.hasData) {
+                    // return Text(snapshot.data!.title);
+                    return ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 26),
+                      // itemCount: HomeMockData.cardItems.length,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        // final item = HomeMockData.cardItems[index];
+                        // List<String> audios = snapshot.data![0].generators[0].audios
+                        //     .map<String>((value) => value.sound1).toList();
+                        List<GeneratorAudio> audios = snapshot.data![0].generators[0].audios;
+
+                        final item = snapshot.data![index];
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            audios.length,
+                            (i) => MynoiseSlider(
+                              audioAsset: audios[i].sound1,
+                              thumbColor: MynoiseSlider.sliderColors[i][0],
+                              activeColor: MynoiseSlider.sliderColors[i][1],
+                              inactiveColor: MynoiseSlider.sliderColors[i][2],
+                              controller: _controllersManager.controllers[i],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text("${snapshot.error}");
+                  }
+
+                  // By default, show a loading spinner.
+                  return CircularProgressIndicator();
+                },
               ),
             ),
             Center(
