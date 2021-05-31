@@ -1,26 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
-import '../../domain/models/models.dart' show GeneratorPack, GeneratorInfo;
-import '../../domain/repositories.dart';
+import '../../providers/generator_model.dart';
+import '../../services/models/models.dart' show GeneratorPack, GeneratorInfo;
+// import '../../services/generator_service.dart';
 import '../generator/generator.dart';
 
-class Home extends StatefulWidget {
-  @override
-  _HomeState createState() => _HomeState();
-}
-
-class _HomeState extends State<Home> {
-  late Future<List<GeneratorPack>> futureGeneratorPack;
-
-  @override
-  void initState() {
-    super.initState();
-    futureGeneratorPack = GeneratorRepository.fetchGeneratorPack();
-  }
-
+class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final vm = context.read<GeneratorModel>();
+
     return Scaffold(
       appBar: AppBar(
         // toolbarHeight: ,
@@ -34,26 +25,22 @@ class _HomeState extends State<Home> {
         actions: <Widget>[AppBarAvatar()],
       ),
       body: FutureBuilder(
-        future: futureGeneratorPack,
+        future: vm.fetchGeneratorPack(),
         builder: (context, AsyncSnapshot<List<GeneratorPack>> snapshot) {
           if (snapshot.hasData) {
-            // return Text(snapshot.data!.title);
             return ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 26),
-              // itemCount: HomeMockData.cardItems.length,
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                // final item = HomeMockData.cardItems[index];
                 final item = snapshot.data![index];
                 return SuggestionBlock(genPack: item);
               },
             );
-          } else if (snapshot.hasError) {
-            return Text("${snapshot.error}");
           }
 
-          // By default, show a loading spinner.
-          return CircularProgressIndicator();
+          if (snapshot.hasError) return Text("${snapshot.error}");
+
+          return Center(child: CircularProgressIndicator());
         },
       ),
     );
@@ -136,8 +123,8 @@ class GeneratorListTile extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () async {
-        final repo = GeneratorRepository(await SharedPreferences.getInstance());
-        repo.moveToGenerator(genInfo.name);
+        // final repo = HomeRepository(await SharedPreferences.getInstance());
+        // repo.moveToGenerator(genInfo.name);
 
         Navigator.push(
           context,

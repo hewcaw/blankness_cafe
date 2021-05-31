@@ -21,10 +21,10 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  just_audio: ^0.7.4+1
   http: ^0.13.3
   shared_preferences: ^2.0.5
-
+  just_audio: ^0.7.4+1
+  provider: ^5.0.0
   freezed_annotation: ^0.14.1
 
   flutter:
@@ -61,7 +61,8 @@ flutter:
     - assets/images/generators/cafe_restaurant.jpg
     - assets/images/others/girl_toy_face.jpg
     
-    - assets/audios/calm_office/
+    - assets/audios/cafe_restaurant/
+    # - assets/audios/calm_office/
   
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
